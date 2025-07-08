@@ -34,44 +34,71 @@ function renderDrinks(drinks) {
     drinkContainer.innerHTML = `<p class="not-found">No drinks found.</p>`;
     return;
   }
+
   drinks.forEach(drink => {
     const card = document.createElement('div');
     card.className = 'drink-card';
 
     card.innerHTML = `
-      <img src=${drink.strDrinkThumb} alt="img"/>
+      <img src="${drink.strDrinkThumb}" alt="${drink.strDrink}" />
       <h3>${drink.strDrink}</h3>
       <p><strong>Category:</strong> ${drink.strCategory || 'N/A'}</p>
       <p><strong>Instructions:</strong> ${drink.strInstructions ? drink.strInstructions.slice(0, 15) + '...' : 'N/A'}</p>
       <div class="btn-group">
-        <button onclick="addToCart('${drink.strDrink}')">Add to Cart</button>
-        <button onclick="showDetails('${drink.idDrink}')">Details</button>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <button class="details-btn">Details</button>
       </div>
     `;
+    card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
+      addToCart(drink);
+    });
+
+    card.querySelector('.details-btn').addEventListener('click', () => {
+      showDetails(drink.idDrink);
+    });
+
     drinkContainer.appendChild(card);
   });
 }
 
-function addToCart(drinkName) {
+
+function addToCart(drink) {
+  if (selectedDrinks.some(d => d.idDrink === drink.idDrink)) {
+    alert('Drink already added to the group!');
+    return;
+  }
+
   if (selectedDrinks.length >= 7) {
     alert('Cannot add more than 7 drinks to the group!');
     return;
   }
-  if (selectedDrinks.includes(drinkName)) {
-    alert('Drink already added to the group!');
-    return;
-  }
-  selectedDrinks.push(drinkName);
+
+  selectedDrinks.push({
+    idDrink: drink.idDrink,
+    strDrink: drink.strDrink,
+    strDrinkThumb: drink.strDrinkThumb,
+  });
+
   renderSelected();
 }
 
 function renderSelected() {
   selectedList.innerHTML = '';
-  selectedDrinks.forEach(drink => {
+
+  selectedDrinks.forEach((drink, index) => {
     const li = document.createElement('li');
-    li.textContent = drink;
+    li.innerHTML = `
+      <span style="margin-right: 10px;"><strong>${index + 1}.</strong></span>
+      <img src="${drink.strDrinkThumb}" alt="${drink.strDrink}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+      <span>${drink.strDrink}</span>
+    `;
+    li.style.display = 'flex';
+    li.style.alignItems = 'center';
+    li.style.marginBottom = '8px';
+
     selectedList.appendChild(li);
   });
+
   drinkCount.textContent = selectedDrinks.length;
 }
 
@@ -92,15 +119,16 @@ async function showDetails(drinkId) {
     const res = await fetch(API_DETAIL + drinkId);
     const data = await res.json();
     const drink = data.drinks[0];
+
     modalTitle.textContent = drink.strDrink;
     modalContent.innerHTML = `
       <img src="${drink.strDrinkThumb}" alt="${drink.strDrink}" />
       <h3>${drink.strDrink}</h3>
       <p><strong>Category:</strong> ${drink.strCategory || 'N/A'}</p>
-      <p><strong>Instructions:</strong> ${drink.strInstructions ? drink.strInstructions.slice(0, 15) + '...' : 'N/A'}</p>
+      <p><strong>Instructions:</strong> ${drink.strInstructions ? drink.strInstructions.slice(0, 100) + '...' : 'N/A'}</p>
       <div class="btn-group">
-        <button onclick="addToCart('${drink.strDrink}')">Add to Group</button>
-        <button onclick="showDetails('${drink.idDrink}')">Details</button>
+        <button data-id="${drink.idDrink}" class="add-btn">Add to Cart</button>
+
       </div>
     `;
     modalBg.style.display = 'flex';
