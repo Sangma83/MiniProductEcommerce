@@ -9,104 +9,103 @@ const modalClose = document.getElementById('modalClose');
 const modalTitle = document.getElementById('modalTitle');
 const modalContent = document.getElementById('modalContent');
 
-let allMeals = [];
-let filteredMeals = [];
-let selectedMeals = [];
+let allDrinks = [];
+let filteredDrinks = [];
+let selectedDrinks = [];
 
-const API_ALL = 'https://www.themealdb.com/api/json/v1/1/search.php?s=';
-const API_DETAIL = 'https://www.themealdb.com/api/json/v1/1/lookup.php?i=';
+const API_ALL = 'https://www.thecocktaildb.com/api/json/v1/1/search.php?f=a';
+const API_DETAIL = 'https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=';
 
-async function fetchMeals() {
+async function fetchDrinks() {
   try {
     const res = await fetch(API_ALL);
     const data = await res.json();
-    allMeals = data.meals || [];
-    filteredMeals = allMeals.slice(0, 8);
-    renderMeals(filteredMeals);
+    allDrinks = data.drinks || [];
+    filteredDrinks = allDrinks.slice(0, 8);
+    renderDrinks(filteredDrinks);
   } catch (error) {
-    drinkContainer.innerHTML = `<p class="not-found">Failed to load meals.</p>`;
+    drinkContainer.innerHTML = `<p class="not-found">Failed to load drinks.</p>`;
   }
 }
 
-function renderMeals(meals) {
+function renderDrinks(drinks) {
   drinkContainer.innerHTML = '';
-  if (meals.length === 0) {
-    drinkContainer.innerHTML = `<p class="not-found">No meals found.</p>`;
+  if (drinks.length === 0) {
+    drinkContainer.innerHTML = `<p class="not-found">No drinks found.</p>`;
     return;
   }
-  meals.forEach(meal => {
+  drinks.forEach(drink => {
     const card = document.createElement('div');
     card.className = 'drink-card';
 
     card.innerHTML = `
-    <img src=${meal.strMealThumb} alt="img"/>
-      <h3>${meal.strMeal}</h3>
-      <p><strong>Category:</strong> ${meal.strCategory || 'N/A'}</p>
-      <p><strong>Instructions:</strong> ${meal.strInstructions ? meal.strInstructions.slice(0,15) + '...' : 'N/A'}</p>
+      <img src=${drink.strDrinkThumb} alt="img"/>
+      <h3>${drink.strDrink}</h3>
+      <p><strong>Category:</strong> ${drink.strCategory || 'N/A'}</p>
+      <p><strong>Instructions:</strong> ${drink.strInstructions ? drink.strInstructions.slice(0, 15) + '...' : 'N/A'}</p>
       <div class="btn-group">
-        <button onclick="addToCart('${meal.strMeal}')">Add to Cart</button>
-        <button onclick="showDetails('${meal.idMeal}')">Details</button>
+        <button onclick="addToCart('${drink.strDrink}')">Add to Cart</button>
+        <button onclick="showDetails('${drink.idDrink}')">Details</button>
       </div>
     `;
     drinkContainer.appendChild(card);
   });
 }
 
-function addToCart(mealName) {
-  if (selectedMeals.length >= 7) {
-    alert('Cannot add more than 7 meals to the group!');
+function addToCart(drinkName) {
+  if (selectedDrinks.length >= 7) {
+    alert('Cannot add more than 7 drinks to the group!');
     return;
   }
-  if (selectedMeals.includes(mealName)) {
-    alert('Meal already added to the group!');
+  if (selectedDrinks.includes(drinkName)) {
+    alert('Drink already added to the group!');
     return;
   }
-  selectedMeals.push(mealName);
+  selectedDrinks.push(drinkName);
   renderSelected();
 }
 
 function renderSelected() {
   selectedList.innerHTML = '';
-  selectedMeals.forEach(meal => {
+  selectedDrinks.forEach(drink => {
     const li = document.createElement('li');
-    li.textContent = meal;
+    li.textContent = drink;
     selectedList.appendChild(li);
   });
-  drinkCount.textContent = selectedMeals.length;
+  drinkCount.textContent = selectedDrinks.length;
 }
 
-function searchMeals() {
+function searchDrinks() {
   const query = searchInput.value.trim().toLowerCase();
   if (!query) {
-    filteredMeals = allMeals.slice(0, 8);
+    filteredDrinks = allDrinks.slice(0, 8);
   } else {
-    filteredMeals = allMeals.filter(meal =>
-      meal.strMeal.toLowerCase().includes(query)
+    filteredDrinks = allDrinks.filter(drink =>
+      drink.strDrink.toLowerCase().includes(query)
     );
   }
-  renderMeals(filteredMeals);
+  renderDrinks(filteredDrinks);
 }
 
-async function showDetails(mealId) {
+async function showDetails(drinkId) {
   try {
-    const res = await fetch(API_DETAIL + mealId);
+    const res = await fetch(API_DETAIL + drinkId);
     const data = await res.json();
-    const meal = data.meals[0];
-    modalTitle.textContent = meal.strMeal;
+    const drink = data.drinks[0];
+    modalTitle.textContent = drink.strDrink;
     modalContent.innerHTML = `
-       <img src="${meal.strMealThumb}" alt="${meal.strMeal}" />
-
-  <h3>${meal.strMeal}</h3>
-  <p><strong>Category:</strong> ${meal.strCategory || 'N/A'}</p>
-  <p><strong>Instructions:</strong> ${meal.strInstructions ? meal.strInstructions.slice(0,15) + '...' : 'N/A'}</p>
-  <div class="btn-group">
-    <button onclick="addToGroup('${meal.strMeal}')">Add to Group</button>
-    <button onclick="showDetails('${meal.idMeal}')">Details</button>
-  </div>
+      <img src="${drink.strDrinkThumb}" alt="${drink.strDrink}" />
+      <h3>${drink.strDrink}</h3>
+      <p><strong>Category:</strong> ${drink.strCategory || 'N/A'}</p>
+      <p><strong>Instructions:</strong> ${drink.strInstructions ? drink.strInstructions.slice(0, 15) + '...' : 'N/A'}</p>
+      <div class="btn-group">
+        <button onclick="addToCart('${drink.strDrink}')">Add to Group</button>
+        <button onclick="showDetails('${drink.idDrink}')">Details</button>
+      </div>
     `;
     modalBg.style.display = 'flex';
   } catch (error) {
-    alert('Failed to load meal details.');
+    alert('Failed to load drink details.');
   }
 }
 
@@ -115,11 +114,11 @@ modalClose.addEventListener('click', () => {
 });
 
 searchBtn.addEventListener('click', () => {
-  searchMeals();
+  searchDrinks();
 });
 
 searchInput.addEventListener('keypress', e => {
-  if (e.key === 'Enter') searchMeals();
+  if (e.key === 'Enter') searchDrinks();
 });
 
-fetchMeals();
+fetchDrinks();
